@@ -1,0 +1,16 @@
+# Supabase CLI config for the Martinrea AP project.
+# Link to your project:   supabase link --project-ref <YOUR_PROJECT_REF>
+# Push the schema:        supabase db push
+# Deploy functions:       supabase functions deploy seed notify
+project_id = "martinrea-ap"
+
+[db]
+major_version = 15
+
+[functions.seed]
+# Does its own authorization (bootstrap-when-empty, else Finance_Director).
+verify_jwt = false
+
+[functions.notify]
+# Validates the bearer token internally.
+verify_jwt = false
