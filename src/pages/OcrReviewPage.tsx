@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ChevronRight, Loader2, UploadCloud, XCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -32,12 +32,11 @@ export default function OcrReviewPage() {
   const [pending] = useState<PendingExtract | null>(() =>
     isNew ? getPendingExtract() : null,
   );
-  useEffect(() => {
-    // Clear the hand-off once consumed so a later visit doesn't resurrect it.
-    return () => {
-      if (isNew) clearPendingExtract();
-    };
-  }, [isNew]);
+  // NOTE: we intentionally do NOT clear the pending store on unmount. React
+  // StrictMode's dev double-mount fires the unmount cleanup immediately after
+  // mount, which used to wipe the staged file before `commit` could read it
+  // (invoice saved with no document). The store is cleared on a successful
+  // commit (handleCommitted) and overwritten by the next extract instead.
 
   // Queued-edit flow: load the existing document.
   const query = useOcrInvoice(isNew ? null : id);
