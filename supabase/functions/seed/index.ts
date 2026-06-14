@@ -117,8 +117,18 @@ Deno.serve(async (req) => {
       { invoice_number: "INV-50242", supplier_name: "Maple Logistics Ltd.", supplier_id: "SUP-MAPLE", po_number: "PO-100377", total_amount: 8800, currency: "CAD", plant_id: "PLT-003", status: "RECEIVED", document_type: "INVOICE", confidence_score: 0, ingestion_channel: "SEED", created_by: clerk },
     ];
 
-    const { data: inserted, error: insErr } = await admin.from("invoices").insert(rows).select("id, invoice_number, status");
-    if (insErr) throw insErr;
+    // Insert one row at a time: the demo rows have heterogeneous keys, which a
+    // single bulk insert (PostgREST) rejects ("all object keys must match").
+    const inserted: Array<{ id: string; invoice_number: string; status: string }> = [];
+    for (const row of rows) {
+      const { data, error: insErr } = await admin
+        .from("invoices")
+        .insert(row)
+        .select("id, invoice_number, status")
+        .single();
+      if (insErr) throw insErr;
+      if (data) inserted.push(data as { id: string; invoice_number: string; status: string });
+    }
 
     // A couple of audit rows so the audit log isn't empty.
     if (inserted?.length) {
